@@ -1,17 +1,15 @@
-;
 ;   File:           peripherals.s
 ;   Description:    A collection of subroutines for managing the system's peripherals.
-;   Author:         Morosanu Nicolas
-;   Created:        29.10.2026
-;   Modified:       01.11.2026
+;   Author:         Nicolas Morosanu
 ;   Version:        1.0.0
-;   
+;
+;   Copyright (c) 2026 Nicolas Morosanu. Licensed under the MIT License.
 
 .include    "./inc/memory.inc"
 
 .code
-.export sys_peripherals_config
-sys_peripherals_config:
+.export _sys_peripherals_config
+_sys_peripherals_config:
     ;       =================
     ;       VIA CONFIGURATION
     ;       =================
@@ -39,56 +37,56 @@ sys_peripherals_config:
 
     rts
 
-.export sys_lcd_init
-sys_lcd_init:
-    jsr     sys_lcd_delay
+.export _sys_lcd_init
+_sys_lcd_init:
+    jsr     _sys_lcd_delay
     lda     #$33                    ;
-    jsr     sys_lcd_command        ;
+    jsr     _sys_lcd_command        ;
     lda     #$32                    ;
-    jsr     sys_lcd_command        ;
+    jsr     _sys_lcd_command        ;
     lda     #$28                    ;
-    jsr     sys_lcd_command        ;
+    jsr     _sys_lcd_command        ;
     lda     #$0C                    ;
-    jsr     sys_lcd_command        ;
+    jsr     _sys_lcd_command        ;
     lda     #$06                    ;
-    jsr     sys_lcd_command        ;
+    jsr     _sys_lcd_command        ;
     lda     #$01                    ;
-    jsr     sys_lcd_command        ;
+    jsr     _sys_lcd_command        ;
     lda     #$80                    ;
-    jsr     sys_lcd_command        ;
+    jsr     _sys_lcd_command        ;
     rts
 
-.export     sys_lcd_delay
-sys_lcd_delay:   
+.export     _sys_lcd_delay
+_sys_lcd_delay:   
     ldx     #$FF
 @dx:
     dex
     bne     @dx
     rts
 
-.export sys_lcd_clear
-sys_lcd_clear:
+.export _sys_lcd_clear
+_sys_lcd_clear:
     pha
     lda     #$01
-    jsr     sys_lcd_command
+    jsr     _sys_lcd_command
     lda     #$80
-    jsr     sys_lcd_command
+    jsr     _sys_lcd_command
     pla
     rts
 
-.export sys_lcd_command
-sys_lcd_command:
+.export _sys_lcd_command
+_sys_lcd_command:
     sta     $00
     and     #$F0
     ora     #$08
     sta     VIA_PORTB
 
-    jsr     sys_lcd_delay
+    jsr     _sys_lcd_delay
 
     and     #$F0
     sta     VIA_PORTB
 
-    jsr     sys_lcd_delay
+    jsr     _sys_lcd_delay
 
     lda     $00
     rol
@@ -99,28 +97,28 @@ sys_lcd_command:
     ora     #$08
     sta     VIA_PORTB
 
-    jsr     sys_lcd_delay
+    jsr     _sys_lcd_delay
 
     and     #$F0
     sta     VIA_PORTB
 
-    jsr     sys_lcd_delay
+    jsr     _sys_lcd_delay
 
     rts
 
-.export sys_lcd_byte_write
-sys_lcd_byte_write:
+.export _sys_lcd_byte_write
+_sys_lcd_byte_write:
     sta     $00
     and     #$F0
     ora     #$0C
     sta     VIA_PORTB
 
-    jsr     sys_lcd_delay
+    jsr     _sys_lcd_delay
 
     and     #$F4
     sta     VIA_PORTB
 
-    jsr     sys_lcd_delay
+    jsr     _sys_lcd_delay
 
     lda     $00
     rol
@@ -131,23 +129,23 @@ sys_lcd_byte_write:
     ora     #$0C
     sta     VIA_PORTB
 
-    jsr     sys_lcd_delay
+    jsr     _sys_lcd_delay
 
     and     #$F4
     sta     VIA_PORTB
 
-    jsr     sys_lcd_delay
+    jsr     _sys_lcd_delay
     lda     $00
 
     rts
 
-.export sys_lcd_string_write
-sys_lcd_string_write:  
+.export _sys_lcd_string_write
+_sys_lcd_string_write:  
     ldy     #$00
 @loop:      lda     (ZP_STRING_BUFFER), y
     beq     @end
 
-    jsr     sys_lcd_byte_write
+    jsr     _sys_lcd_byte_write
     iny
 
     bra     @loop
@@ -155,8 +153,18 @@ sys_lcd_string_write:
 @end:       
     rts
 
-.export sys_uart_byte_read
-sys_uart_byte_read:
+.export _sys_uart_newline
+_sys_uart_newline:
+    pha
+    lda     #$0D
+    jsr     _sys_uart_byte_write
+    lda     #$0A
+    jsr     _sys_uart_byte_write
+    pla
+    rts
+
+.export _sys_uart_byte_read
+_sys_uart_byte_read:
     pha
 @poll:
     lda     ACIA_STATUS
@@ -167,8 +175,8 @@ sys_uart_byte_read:
 
     rts
 
-.export sys_uart_byte_write
-sys_uart_byte_write:   
+.export _sys_uart_byte_write
+_sys_uart_byte_write:   
     sta     ACIA_DATA
     pha
     lda     #$FF
@@ -178,8 +186,8 @@ sys_uart_byte_write:
     pla
     rts
 
-.export sys_uart_string_write
-sys_uart_string_write:
+.export _sys_uart_string_write
+_sys_uart_string_write:
     ldy     #$00
 @loop:      
     lda     (ZP_STRING_BUFFER), y
@@ -220,15 +228,15 @@ acia_irq:
     cmp     #$08                        ;   DEL sau BS?
     beq     @DEL                        ;
 
-    jsr     sys_uart_byte_write         ;
+    jsr     _sys_uart_byte_write        ;
     inx                                 ;
     bra     @end                        ;
 
 @CR:                                    ;
     stz     IB_READY                    ;
-    jsr     sys_uart_byte_write         ;   Input buffer can be read by the running program
+    jsr     _sys_uart_byte_write        ;   Input buffer can be read by the running program
     lda     #$0A                        ;   
-    jsr     sys_uart_byte_write         ;
+    jsr     _sys_uart_byte_write        ;
     ;stx     IB_IDX_TMP                  ;   Store the current index for later use
     ldx     #$00                        ;   Reset the input buffer index
 @DEL:
@@ -237,11 +245,11 @@ acia_irq:
     dex                                 ;       return
 
     lda     #$08                        ;
-    jsr     sys_uart_byte_write         ;   send backspace
+    jsr     _sys_uart_byte_write         ;   send backspace
     lda     #$20                        ;
-    jsr     sys_uart_byte_write         ;   send space
+    jsr     _sys_uart_byte_write         ;   send space
     lda     #$08                        ;
-    jsr     sys_uart_byte_write         ;   send backspace
+    jsr     _sys_uart_byte_write         ;   send backspace
 @end:
     stx     IB_IDX
 

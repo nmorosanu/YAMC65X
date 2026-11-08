@@ -1,18 +1,13 @@
-;
 ;   File:           main.s
-;   Description:    Auxiliary file for simulating and debugging purposes.
-;   Author:         Morosanu Nicolas
-;   Created:        29.10.2026
-;   Modified:       01.11.2026
+;   Description:    Auxiliary file for simulating purposes.
+;                   This file's main purpose is just to allign with how sim65 expects to start execution.
+;   Author:         Nicolas Morosanu
 ;   Version:        1.0.0
-;   
-
 ;
-;   Fisierul poate sa nu fie inclus la deployment.
-;   Fisierul are uz doar pentru simulari cu sim65.
-;
+;   Copyright (c) 2026 Nicolas Morosanu. Licensed under the MIT License.
 
 .include    "./inc/vectors.inc"
 .code
+
 .export     _main
 _main:      jmp     RESET

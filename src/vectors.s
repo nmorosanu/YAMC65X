@@ -1,30 +1,38 @@
-;
 ;   File:           vectors.s
-;   Description:    The NMI, RESET and IRQ vectors.
-;   Author:         Morosanu Nicolas
-;   Created:        29.10.2026
-;   Modified:       01.11.2026
-;   Version:        0.0.1
-;   
+;   Description:    Implementation of the IRQ, RESET, NMI vectors.
+;                   Also features a custom vector "HOME" placed at $FFF8.
+;   Author:         Nicolas Morosanu
+;   Version:        1.0.0
+;
+;   Copyright (c) 2026 Nicolas Morosanu. Licensed under the MIT License.
 
 .include    "./inc/memory.inc"
 .include    "./inc/peripherals.inc"
-.include    "./inc/games.inc"
-.include    "./inc/monitor.inc"
-.include    "./inc/program.inc"
+.include    "./inc/programs.inc"
 .include    "./inc/utils.inc"
 
 .feature string_escapes
 
 .rodata
 msg_sys_init:
-.asciiz "\n\rYAMC65X v1.0\n\rCopyright 2026 Nicolas Morosanu. All rights reserved.\n\r\n\r"
+.asciiz "\n\rYAMC65X v1.0\n\rCopyright (c) 2026 Nicolas Morosanu.\n\rThis project is licensed under the MIT license.\n\r\n\r"
 
-msg_sys_invalid_cmd:
-.asciiz "Invalid command!\n\r"
+msg_sys_invalid_request:
+.asciiz "Invalid request.\n\r"
 
-msg_prompt:
-.asciiz " [shell] > "
+msg_sys_prompt:
+.asciiz " [HOME] > "
+
+msg_sys_help:
+.asciiz "HELP\n\rTo run a program, type the index associated with it and press enter.\n\r0 ~ BlackJack\n\r1 ~ Word Guesser\n\r2 ~ MineSweeper\n\r"
+
+programs_table:
+.word _blackjack_init
+.word _word_guesser_init
+.word _minesweeper_init
+.word _HOME
+
+.import _exit
 
 .code
 .export NMI
@@ -37,15 +45,16 @@ RESET:
     ldx     #$FF                            ;   
     txs                                     ;   init stiva
     cld                                     ;   decimal mode dezactivat
+    jsr     _sys_peripherals_config
     stz     IB_IDX
     stx     IB_READY
     lda     #$A5
     sta     PRNG_SEED
-    stz     PRNG_VAL_MAX
-    jsr     sys_peripherals_config
+    lda     #8
+    sta     PRNG_MOD
     cli
 
-HOME:
+_HOME:
     sei                                     ;
     ldx     #$FF                            ;
     txs                                     ;
@@ -54,64 +63,62 @@ HOME:
     sta     ZP_STRING_BUFFER
     lda     #>msg_sys_init
     sta     ZP_STRING_BUFFER + 1
-    jsr     sys_uart_string_write
+    jsr     _sys_uart_string_write
 
     cli                                     ;
 PROMPT:
-    lda     #<msg_prompt
+    lda     #<msg_sys_prompt
     sta     ZP_STRING_BUFFER
-    lda     #>msg_prompt
+    lda     #>msg_sys_prompt
     sta     ZP_STRING_BUFFER + 1
-    jsr     sys_uart_string_write
+    jsr     _sys_uart_string_write
 @loop_ib_ready:                             ;
-    lda     IB_READY                        ;   Asteapta pana cand avem o comanda.
+    lda     IB_READY                        ;   Wait for command.
     bne     @loop_ib_ready                  ;
 @parse:
     sei                                     ;
     ldx     #$FF                            ;
-    txs                                     ;   Reset stiva.
+    txs                                     ;   Reset stack.
     cli                                     ;
 
-    dec     IB_READY                        ;   
-
+    dec     IB_READY
     lda     IB_BASE
-    cmp     #'m'                            ;   If first char is m,
-    beq     @monitor                        ;   launch memory monitor.
-    cmp     #'g'                            ;   If first char is g,
-    beq     @games                          ;   check for games.
 
-    lda     #<msg_sys_invalid_cmd           ;
-    sta     ZP_STRING_BUFFER                ;
-    lda     #>msg_sys_invalid_cmd           ;   Semnaleaza comanda invalida.
-    sta     ZP_STRING_BUFFER + 1            ;
-    jsr     sys_uart_string_write           ;
+    cmp     #'h'                            ;
+    beq     @help                           ;   Print help panel.
 
-    bra     PROMPT                          ;   return.
+    cmp     #'0'
+    bcc     @invalid_request
+    cmp     #$3A
+    bcs     @invalid_request
 
-@monitor:
-    jmp     _monitor_init
+    sec                                     ;
+    sbc     #'0'                            ;   Convert ASCII value to digit.
+    and     #$03                            ;   Restrict values to [0, 3]
+    asl                                     ;   A = A * 2, because addresses are 16-bit.
 
-@games:                                     ;
-    lda     IB_BASE + 1                     ;   Retrieve next byte.
-    cmp     #'h'                            ;   If char is h,
-    beq     @hangman                        ;   launch hangman.
-    cmp     #'b'                            ;   If char is m
-    beq     @blackjack                      ;   launch blackjack.
-    
-    lda     #<msg_sys_invalid_cmd           ;
-    sta     ZP_STRING_BUFFER                ;
-    lda     #>msg_sys_invalid_cmd           ;   Semnaleaza comanda invalida.
-    sta     ZP_STRING_BUFFER + 1            ;
-    jsr     sys_uart_string_write           ;
+    tax
+    lda     programs_table, X
+    sta     $00
+    lda     programs_table + 1, X
+    sta     $01
+    jmp     ($00)                           ;   jump to program.
 
-    dec     IB_READY                        ;
-    bra     @loop_ib_ready                  ;   return.
+@invalid_request:
+    lda     #<msg_sys_invalid_request
+    sta     ZP_STRING_BUFFER
+    lda     #>msg_sys_invalid_request
+    sta     ZP_STRING_BUFFER + 1
+    jsr     _sys_uart_string_write
+    bra     PROMPT
 
-@hangman:
-    jmp     _hangman_init
-
-@blackjack:
-    jmp     _blackjack_init
+@help:  
+    lda     #<msg_sys_help
+    sta     ZP_STRING_BUFFER
+    lda     #>msg_sys_help
+    sta     ZP_STRING_BUFFER + 1
+    jsr     _sys_uart_string_write
+    bra     PROMPT
 
 .export IRQ
 IRQ:
@@ -140,9 +147,8 @@ IRQ:
 brk_irq:
     rts
 
-;   disabled while debugging with sim65
 .segment "VECTORS"
-.word   HOME
+.word   _HOME
 .word   NMI
 .word   RESET
 .word   IRQ

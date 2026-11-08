@@ -3,7 +3,6 @@
 
 ;   VARIABILE ZEROPAGE         [$0000 - 00FF]
 
-.define PRNG_VAL_MAX            $00FB   ;
 .define ZP_INPUT_BUFFER         $00FC   ;   $FC - $FD
 .define ZP_STRING_BUFFER        $00FE   ;   $FE - $FF
 
@@ -18,7 +17,8 @@
 .define CRC                     $0304   ;   crc16 result
 .define CRC_COMPARE             $0306   ;   crc16 to compare with
 .define PRNG_SEED               $0308   ;   seed for the random number generator
-.define NUM2STR                 $0309   ;   $0309 - 030C
+.define PRNG_MOD                $0309   ;
+.define DEC2STR                 $030A   ;   $030A - 030B
 
 ;   STIVA SOFTWARE (REZERVATA) [$1000 - $1FFF]
 ;   MEMORIE DE PROGRAM         [$2000 - $7FFF]
@@ -44,4 +44,5 @@
 .define VIA_IER         $801E
 .define VIA_PORTA_NH    $801F
 
+.define HOME            $FFF8
 .endif

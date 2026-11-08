@@ -1,9 +1,10 @@
 .ifndef __CRC_H__
 .define __CRC_H__ 1
 
-.import sys_prng
-.import sys_num2str
-.import sys_crc16modbus
-.import sys_crc16modbus_cmp
+.import _sys_prng
+.import _sys_prng_old
+.import _sys_dec2str
+.import _sys_crc16modbus
+.import _sys_crc16modbus_cmp
 
 .endif
