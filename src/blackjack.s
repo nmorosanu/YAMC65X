@@ -75,47 +75,47 @@ DECK_BASE       =   $06     ;   Starting address of the deck to be used.
 ;   Initialization
 .export _blackjack_init
 _blackjack_init:
-    lda     #<msg_init                      ;
-    sta     ZP_STRING_BUFFER                ;
-    lda     #>msg_init                      ;   Afiseaza mesaj de initializare
-    sta     ZP_STRING_BUFFER + 1            ;
-    jsr     _sys_uart_string_write           ;
+    lda     #<msg_init
+    sta     ZP_STRING_BUFFER
+    lda     #>msg_init
+    sta     ZP_STRING_BUFFER + 1
+    jsr     _sys_uart_string_write
 @MAINLOOP:
-    stz     DRAWING_DONE                    ;   Reseteaza variabilele
-    stz     DECK_POS                        ;
+    stz     DRAWING_DONE
+    stz     DECK_POS
 
-    jsr     _blackjack_deck_shuffle         ;   Amesteca pachetul.
+    jsr     _blackjack_deck_shuffle
 
-    lda     #$00                            ;
-    jsr     _blackjack_draw                 ;
-    jsr     _blackjack_draw                 ;   Computerul primeste 2 carti.
-    sta     HAND_COMPUTER                   ;
+    lda     #0
+    jsr     _blackjack_draw
+    jsr     _blackjack_draw
+    sta     HAND_COMPUTER
 
-    lda     #$00                            ;
-    jsr     _blackjack_draw                 ;
-    jsr     _blackjack_draw                 ;   Jucatorul primeste 2 carti.
-    sta     HAND_PLAYER                     ;
+    lda     #0
+    jsr     _blackjack_draw
+    jsr     _blackjack_draw
+    sta     HAND_PLAYER
 
 @loop:
-    lda     #<msg_stats                     ;
-    sta     ZP_STRING_BUFFER                ;
-    lda     #>msg_stats                     ;   Afiseaza mesajul stats.
-    sta     ZP_STRING_BUFFER + 1            ;
-    jsr     _sys_uart_string_write          ;
+    lda     #<msg_stats
+    sta     ZP_STRING_BUFFER
+    lda     #>msg_stats
+    sta     ZP_STRING_BUFFER + 1
+    jsr     _sys_uart_string_write
 
-    lda     HAND_PLAYER                     ;
-    jsr     _sys_dec2str                    ;
-    lda     #<DEC2STR                       ;
-    sta     ZP_STRING_BUFFER                ;   Afiseaza scorul jucatorului.
-    lda     #>DEC2STR                       ;
-    sta     ZP_STRING_BUFFER + 1            ;
-    jsr     _sys_uart_string_write          ;
+    lda     HAND_PLAYER
+    jsr     _sys_dec2str
+    lda     #<DEC2STR
+    sta     ZP_STRING_BUFFER
+    lda     #>DEC2STR
+    sta     ZP_STRING_BUFFER + 1
+    jsr     _sys_uart_string_write
 
-    lda     #<msg_prompt                    ;
-    sta     ZP_STRING_BUFFER                ;
-    lda     #>msg_prompt                    ;   Afiseaza prompt.
-    sta     ZP_STRING_BUFFER + 1            ;
-    jsr     _sys_uart_string_write          ;
+    lda     #<msg_prompt
+    sta     ZP_STRING_BUFFER
+    lda     #>msg_prompt
+    sta     ZP_STRING_BUFFER + 1
+    jsr     _sys_uart_string_write
 
 @loop_action:
     lda     IB_READY
