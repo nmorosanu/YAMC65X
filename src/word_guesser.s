@@ -78,7 +78,7 @@ MAINLOOP:
     lda     #5
     sta     LIVES
 
-    lda     #8
+    lda     #7
     sta     PRNG_MOD
 
     jsr     _sys_prng
