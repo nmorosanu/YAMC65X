@@ -1,70 +1,34 @@
-;
 ;   File:           utils.s
 ;   Description:    A collection of subroutines for everyday needs.
-;   Author:         Morosanu Nicolas
-;   Created:        29.10.2026
-;   Modified:       01.11.2026
-;   Version:        0.0.1
-;   
+;   Author:         Nicolas Morosanu
+;   Version:        1.0.0
+;
+;   Copyright (c) 2026 Nicolas Morosanu. Licensed under the MIT License.
 
 .include "inc/memory.inc"
 .include "inc/peripherals.inc"
 
 .code
-.export sys_num2str
-sys_num2str:
-    pha
-    phx
-    phy
 
-    ldx     #0
-    stx     NUM2STR + 3             ;   NUM2STR[3] = '\0'
-@sute:
-    cmp     #100
-    bcc     @sute_end
+.export _sys_prng
+_sys_prng:
+    lda     PRNG_SEED
+    lsr
+    bcc     :+
+    eor     #$B8
+:   sta     PRNG_SEED
+
     sec
-    sbc     #100
-    inx
-    bra     @sute
+@modloop:
+    sbc     PRNG_MOD
+    bcs     @modloop
+    adc     PRNG_MOD
 
-@sute_end:
-    tay
-    txa
-    clc
-    adc     #'0'
-    sta     NUM2STR                 ;   NUM2STR[0] = A / 100 % 10 + '0'
-
-    ldx     #0
-    tya
-@zeci:
-    cmp     #10
-    bcc     @zeci_end
-    sec
-    sbc     #10
-    inx
-    bra     @zeci
-@zeci_end:
-    tay
-    txa
-    clc
-    adc     #'0'
-    sta     NUM2STR + 1             ;   NUM2STR[1] = A / 10 % 10 + '0'
-
-    tya
-    clc
-    adc     #'0'
-    sta     NUM2STR + 2             ;   NUM2STR[2] = A % 10 + '0'
-
-    ply
-    plx
-    pla
     rts
 
-.export sys_prng
-sys_prng:
-    phx
+.export _sys_prng_old
+_sys_prng_old:
     lda     PRNG_SEED
-    tax
     
     asl
     eor     PRNG_SEED
@@ -87,15 +51,64 @@ sys_prng:
 @mod:
     sec
 @modloop:
-    sbc     PRNG_VAL_MAX
+    sbc     PRNG_MOD
     bcs     @modloop
-    
-    adc     PRNG_VAL_MAX
-    plx
+    adc     PRNG_MOD
+
     rts
 
-.export sys_crc16_modbus
-sys_crc16_modbus:
+.export _sys_dec2str
+_sys_dec2str:
+    pha
+    phx
+    phy
+
+    ldx     #0
+    stx     DEC2STR + 3             ;   NUM2STR[3] = '\0'
+@sute:
+    cmp     #100
+    bcc     @sute_end
+    sec
+    sbc     #100
+    inx
+    bra     @sute
+
+@sute_end:
+    tay
+    txa
+    clc
+    adc     #'0'
+    sta     DEC2STR                 ;   NUM2STR[0] = A / 100 % 10 + '0'
+
+    ldx     #0
+    tya
+@zeci:
+    cmp     #10
+    bcc     @zeci_end
+    sec
+    sbc     #10
+    inx
+    bra     @zeci
+@zeci_end:
+    tay
+    txa
+    clc
+    adc     #'0'
+    sta     DEC2STR + 1             ;   NUM2STR[1] = A / 10 % 10 + '0'
+
+    tya
+    clc
+    adc     #'0'
+    sta     DEC2STR + 2             ;   NUM2STR[2] = A % 10 + '0'
+
+    ply
+    plx
+    pla
+    rts
+
+
+.export _sys_crc16_modbus
+_sys_crc16_modbus:
     lda     #$FF                    ;
     sta     CRC                     ;
     sta     CRC + 1                 ;   CRC = xFFFF
@@ -130,8 +143,8 @@ sys_crc16_modbus:
 @end:
     rts
 
-.export sys_crc16modbus_cmp
-sys_crc16modbus_cmp:
+.export _sys_crc16modbus_cmp
+_sys_crc16modbus_cmp:
 @lbyte:
     lda     CRC
     cmp     CRC_COMPARE
