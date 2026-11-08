@@ -19,22 +19,22 @@ DCD_JED		 = 	$(DCD).jed
 FIRMWARE	 = 	firmware.bin
 FIRMWARE_SIM =	simulation.bin
 
-LD		 	 = ld65
-LDFLAGS  	 = -v -S 0x8000
-AS 		 	 = ca65
-ASFLAGS  	 = -v --cpu W65C02
-CC		 	 = cc65
-CFLAGS	 	 = -v --cpu W65C02 -I$(DIR_INC)
-SIM		 	 =	sim65
-SIMFLAGS 	 =	
+LD		 	= 	ld65
+LDFLAGS  	= 	-v -S 0x8000
+AS 		 	= 	ca65
+ASFLAGS  	= 	-v --cpu W65C02
+CC		 	= 	cc65
+CFLAGS	 	= 	-v --cpu 65C02 -I$(DIR_INC)
+SIM		 	=	sim65
+SIMFLAGS	=	-c -v --trace
 
 all: $(FIRMWARE)
 
 .PHONY: sim
 sim: $(OBJS)
 	@mkdir -p $(DIR_BIN)
-	$(LD) $(LDFLAGS) -t sim65c02 -o $(DIR_BIN)/$(FIRMWARE_SIM) $(OBJS) /share/cc65/lib/sim65c02.lib
-	$(SIM) --cycles --trace -v $(DIR_BIN)/$(FIRMWARE_SIM)
+	$(LD) -DSIM_DEBUG=1 $(LDFLAGS) -t sim65c02 -o $(DIR_BIN)/$(FIRMWARE_SIM) $(OBJS) /share/cc65/lib/sim65c02.lib
+	$(SIM) $(SIMFLAGS) -v $(DIR_BIN)/$(FIRMWARE_SIM)
 
 $(FIRMWARE): $(OBJS)
 	@mkdir -p $(DIR_BIN)
@@ -44,7 +44,9 @@ $(FIRMWARE): $(OBJS)
 $(DIR_OBJ)/%.c.o: $(DIR_SRC)/%.c
 	@mkdir -p $(DIR_OBJ)
 	@echo "[Compiling C file $< to $@]"
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -o $@.s $<
+	$(AS) $(CFLAGS) -o $@ $@.s
+	rm	$@.s
 
 $(DIR_OBJ)/%.s.o: $(DIR_SRC)/%.s
 	@mkdir -p $(DIR_OBJ)

@@ -11,8 +11,8 @@ To compile the source files just execute ```make``` in the project's directory.
 To simulate using **sim65**, you will need to comment out the ```.word``` directives from the ```vectors.s``` file, recompile and execute in your terminal ```make sim```.
 
 ```
-.segment "VECTORS"
-.word    HOME
+;.segment "VECTORS"
+;.word    HOME
 ;.word    NMI
 ;.word    RESET
 ;.word    IRQ
