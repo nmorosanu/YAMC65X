@@ -18,5 +18,8 @@ To simulate using **sim65**, you will need to comment out the ```.word``` direct
 ;.word    IRQ
 ```
 
+### TODO
+Explain better and in more detail every block of assembly code using comments in source files.
+
 ### LICENSE
 This project is licensed under the MIT License.
