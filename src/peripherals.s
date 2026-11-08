@@ -244,12 +244,12 @@ acia_irq:
     beq     @end                        ;   if (IB_IDX == 0)
     dex                                 ;       return
 
-    lda     #$08                        ;
-    jsr     _sys_uart_byte_write         ;   send backspace
-    lda     #$20                        ;
-    jsr     _sys_uart_byte_write         ;   send space
-    lda     #$08                        ;
-    jsr     _sys_uart_byte_write         ;   send backspace
+    lda     #$08
+    jsr     _sys_uart_byte_write
+    lda     #$20
+    jsr     _sys_uart_byte_write
+    lda     #$08
+    jsr     _sys_uart_byte_write
 @end:
     stx     IB_IDX
 

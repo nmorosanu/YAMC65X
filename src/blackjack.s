@@ -272,21 +272,21 @@ _blackjack_deck_shuffle:
 _blackjack_buffer_parse:
     pha
 
-    lda     IB_BASE                         ;
-    cmp     #'d'                            ;
-    beq     @draw                           ;
-    cmp     #'s'                            ;   
-    beq     @stay                           ;
-    cmp     #'h'                            ;
-    beq     @help                           ;
-    cmp     #'q'                            ;
-    beq     @quit                           ;
+    lda     IB_BASE
+    cmp     #'d'
+    beq     @draw
+    cmp     #'s'
+    beq     @stay
+    cmp     #'h'
+    beq     @help
+    cmp     #'q'
+    beq     @quit
 
-    lda     #<msg_invalid_request           ;
-    sta     ZP_STRING_BUFFER                ;
-    lda     #>msg_invalid_request           ;
-    sta     ZP_STRING_BUFFER + 1            ;   
-    jsr     _sys_uart_string_write          ;
+    lda     #<msg_invalid_request
+    sta     ZP_STRING_BUFFER
+    lda     #>msg_invalid_request
+    sta     ZP_STRING_BUFFER + 1
+    jsr     _sys_uart_string_write
 
     bra     @end
 @draw:
@@ -313,14 +313,14 @@ _blackjack_buffer_parse:
 _blackjack_draw:
     phx
 
-    ldx     DECK_POS                        ;
-    cpx     #52                             ;   if (x == 52)
-    bne     @continue                       ;       x = 0;
-    stz     DECK_POS                        ;
     ldx     DECK_POS
-@continue:                                  ;
-    clc                                     ;
-    adc     DECK_BASE, X                    ;   A = A + deck[x];
+    cpx     #52
+    bne     @continue
+    stz     DECK_POS
+    ldx     DECK_POS
+@continue:
+    clc
+    adc     DECK_BASE, X
     inx
     stx     DECK_POS
 
@@ -333,38 +333,36 @@ _blackjack_stay:
     pha
     phx
 
-    lda     HAND_COMPUTER                   ;   A = HAND_COMPUTER
-@loop:                                      ;
+    lda     HAND_COMPUTER
+@loop:
     clc
-    cmp     #17                             ;
-    bcs     @end                            ;   while (A < 17) {
-    jsr     _blackjack_draw                 ;       A = A + _blackjack_draw;
-    bra     @loop                           ;   }
-@end:                                       ;
-    sta     HAND_COMPUTER                   ;   HAND_COMPUTER = A
-    
+    cmp     #17
+    bcs     @end
+    jsr     _blackjack_draw
+    bra     @loop
+@end:
+    sta     HAND_COMPUTER
     dec     DRAWING_DONE
-
     plx
     pla
     rts
 
 ;   Help message
 _blackjack_help:
-    lda     #<msg_help                      ;
-    sta     ZP_STRING_BUFFER                ;
-    lda     #>msg_help                      ;   Afiseaza mesaj help.
-    sta     ZP_STRING_BUFFER + 1            ;
-    jsr     _sys_uart_string_write          ;
+    lda     #<msg_help
+    sta     ZP_STRING_BUFFER
+    lda     #>msg_help
+    sta     ZP_STRING_BUFFER + 1
+    jsr     _sys_uart_string_write
     rts
 
 ;   Quit
 _blackjack_quit:
-    lda     #<msg_quit                      ;
-    sta     ZP_STRING_BUFFER                ;
-    lda     #>msg_quit                      ;   Afiseaza mesaj quit
-    sta     ZP_STRING_BUFFER + 1            ;
-    jsr     _sys_uart_string_write          ;
+    lda     #<msg_quit
+    sta     ZP_STRING_BUFFER
+    lda     #>msg_quit
+    sta     ZP_STRING_BUFFER + 1
+    jsr     _sys_uart_string_write
 
     dec     IB_READY
     jmp     (HOME)                          ;   Salt la "HOME".
